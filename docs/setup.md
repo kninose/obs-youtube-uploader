@@ -15,11 +15,7 @@ python -m venv venv
 
 3. 仮想環境の有効化
 ```sh
-# Windows
 venv\Scripts\activate
-
-# Mac/Linux
-source venv/bin/activate
 ```
 
 4. 依存関係のインストール
@@ -28,10 +24,12 @@ pip install -r requirements.txt
 ```
 
 5. 環境変数の設定
-* .env.example を .env にコピーして編集
-* YouTube API認証情報を設定
+```sh
+copy config\.env.example .env
+```
+.env ファイルを開いて，OBSのサーバーパスワードを設定してください．
 
-## 日常的な開発
+## 二回目以降の開発
 開発開始時
 ```sh
 venv\Scripts\activate
