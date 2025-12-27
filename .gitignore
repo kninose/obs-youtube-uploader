@@ -1,0 +1,19 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# 認証情報
+.env
+client_secrets.json
+token.json
+
+# 動画ファイル
+*.mp4
+*.mkv
+*.flv
+
+# その他
+.DS_Store
+Thumbs.db
+*.log
