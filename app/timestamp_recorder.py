@@ -14,7 +14,7 @@ class TimestampRecorder:
         self.key_bindings = {
             keyboard.Key.f1: "match_start",
             keyboard.Key.f2: "match_end",
-            keyboard.Key.f3: "highlight",
+            keyboard.Key.f3: "break_time",
         }
     
     # 録画開始・タイムスタンプ記録開始
@@ -44,14 +44,13 @@ class TimestampRecorder:
             self.add_timestamp(elapsed_time, event_type)
     
     # タイムスタンプを追加
-    def add_timestamp(self, elapsed_seconds, event_type, custom_label=None):
+    def add_timestamp(self, elapsed_seconds, event_label):
         timestamp = {
-            'time': elapsed_seconds,
-            'type': event_type,
-            'label': custom_label or event_type
+            "time": elapsed_seconds,
+            "label": event_label
         }
         self.timestamps.append(timestamp)
-        print(f"タイムスタンプ記録: {self._format_time(elapsed_seconds)} - {event_type}")
+        print(f"タイムスタンプ記録: {self._format_time(elapsed_seconds)} - {event_label}")
     
     # 秒数を 0:00 形式に変換
     def _format_time(self, seconds):
@@ -70,14 +69,11 @@ class TimestampRecorder:
         if not self.timestamps:
             return ""
         
-        # タイムスタンプを時間順にソート
-        sorted_timestamps = sorted(self.timestamps, key=lambda x: x['time'])
-        
         # チャプター形式に変換
         chapters = []
-        for ts in sorted_timestamps:
-            time_str = self._format_time(ts['time'])
-            label = ts['label']
+        for ts in self.timestamps:
+            time_str = self._format_time(ts["time"])
+            label = ts["label"]
             chapters.append(f"{time_str} {label}")
         
         # 最初に0:00を追加（YouTubeの要件）
@@ -85,7 +81,3 @@ class TimestampRecorder:
             chapters.insert(0, "0:00 開始")
         
         return "\n".join(chapters)
-    
-    # 記録されたタイムスタンプを取得
-    def get_timestamps(self):
-        return self.timestamps

@@ -10,7 +10,7 @@ cd obs-uploader
 
 2. 開発環境の作成
 ```sh
-py　-3.12 -m venv venv
+py -3.12 -m venv venv
 ```
 
 3. 仮想環境の有効化
@@ -58,7 +58,7 @@ pip freeze > requirements.txt
 ```sh
 deactivate
 rmdir /s venv
-python -m venv venv
+py -3.12 -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 ```
