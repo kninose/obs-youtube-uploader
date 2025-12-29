@@ -2,7 +2,6 @@ import customtkinter as ctk
 from gui import App
 
 def main():
-    """アプリケーションのエントリーポイント"""
     app = App()
     app.mainloop()
 

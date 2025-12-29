@@ -1,6 +1,7 @@
 import os
 import customtkinter as ctk
 from obs_controller import OBSController
+from timestamp_recorder import TimestampRecorder
 from youtube_uploader import YouTubeUploader
 
 class App(ctk.CTk):
@@ -19,6 +20,7 @@ class App(ctk.CTk):
         # コントローラー初期化
         self.obs = OBSController()
         self.youtube = YouTubeUploader()
+        self.timestamp_recorder = TimestampRecorder()
         
         # UI構築
         self._create_widgets()
@@ -59,6 +61,21 @@ class App(ctk.CTk):
         )
         self.stop_button.pack(pady=10)
         
+        # タイムスタンプ表示エリア
+        self.timestamp_label = ctk.CTkLabel(
+            self,
+            text="タイムスタンプ (F1:試合開始 F2:試合終了 F3:ハイライト)",
+            font=ctk.CTkFont(size=12)
+        )
+        self.timestamp_label.pack(pady=10)
+        
+        self.timestamp_textbox = ctk.CTkTextbox(
+            self,
+            width=700,
+            height=150
+        )
+        self.timestamp_textbox.pack(pady=10)
+
         # アップロードボタン
         self.upload_button = ctk.CTkButton(
             self,
@@ -90,7 +107,9 @@ class App(ctk.CTk):
     def start_recording(self):
         try:
             self.obs.start_recording()
-            self.status_label.configure(text="録画中...")
+            self.timestamp_recorder.start_recording()
+            self.timestamp_textbox.delete("1.0", "end")
+            self.status_label.configure(text="録画中... (F1-F3でタイムスタンプ追加)")
             self.record_button.configure(state="disabled")
             self.stop_button.configure(state="normal")
         except Exception as e:
@@ -100,6 +119,20 @@ class App(ctk.CTk):
     def stop_recording(self):
         try:
             self.obs.stop_recording()
+            self.timestamp_recorder.stop_recording()
+
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            video_folder = os.path.join(project_root, "video")
+
+            try:
+                moved_path = self.obs.move_recording_to_folder(video_folder)
+            except Exception as e:
+                print(f"ファイル移動エラー: {e}")
+
+            chapters = self.timestamp_recorder.generate_youtube_chapters()
+            self.timestamp_textbox.delete("1.0", "end")
+            self.timestamp_textbox.insert("1.0", chapters)
+
             self.status_label.configure(text="録画を停止しました")
             self.stop_button.configure(state="disabled")
             self.upload_button.configure(state="normal")
@@ -111,15 +144,25 @@ class App(ctk.CTk):
         try:
             self.status_label.configure(text="アップロード中...")
             self.update()
-            # TODO: 最新の録画ファイルを取得してアップロード
+
+            chapters = self.timestamp_textbox.get("1.0", "end").strip()
+            description = f"ゲームプレイ動画\n\nチャプター:\n{chapters}" if chapters else "概要欄テキスト"
+
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            video_path = os.path.join(project_root, "video.mp4")
+            video_folder = os.path.join(project_root, "video")
 
-            if not os.path.exists(video_path):
-                raise FileNotFoundError(f"動画ファイルが見つかりません: {video_path}")
+            if not os.path.exists(video_folder):
+                raise FileNotFoundError(f"videoフォルダが見つかりません: {video_folder}")
 
-            video_path = video_path = r"C:\Users\0827k\obs-uploader\video.mp4"
-            self.youtube.upload(video_path, "動画タイトル", "概要欄テキスト")
+            video_files = [f for f in os.listdir(video_folder) if f.endswith('.mp4')]
+            
+            if not video_files:
+                raise FileNotFoundError(f"videoフォルダに動画ファイルが見つかりません: {video_folder}")
+            
+            video_files_path = [os.path.join(video_folder, f) for f in video_files]
+            latest_video = max(video_files_path, key=os.path.getmtime)
+
+            self.youtube.upload(latest_video, "動画タイトル", description)
             self.status_label.configure(text="アップロード完了！")
             self.upload_button.configure(state="disabled")
             self.record_button.configure(state="normal")

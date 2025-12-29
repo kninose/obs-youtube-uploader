@@ -62,5 +62,5 @@ OBS_PASSWORD=your_password
 
 ## アプリの起動
 ```sh
-python main.py
+python app/main.py
 ```
