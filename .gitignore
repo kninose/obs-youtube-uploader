@@ -6,13 +6,10 @@ __pycache__/
 # 認証情報
 .env
 client_secrets.json
-token.json
 token.pickle
 
 # 動画ファイル
 *.mp4
-*.mkv
-*.flv
 
 # その他
 .DS_Store
