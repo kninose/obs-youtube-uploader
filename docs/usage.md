@@ -21,7 +21,9 @@ copy config\.env.example .env
 OBS_HOST=localhost
 OBS_PORT=4455
 OBS_PASSWORD=your_password
-YOUTUBE_PLAYLIST_ID=  # 再生リストIDを設定（任意。未設定の場合は再生リストに追加されません）
+
+CLIENT_SECRETS_PATH=client_secrets.json
+YOUTUBE_PLAYLIST_ID=  # 任意．未設定の場合は再生リストに追加されません
 ```
 ⚠️ `OBS_PASSWORD` には，手順1で設定したパスワードを入力してください
 
@@ -78,6 +80,7 @@ YOUTUBE_PLAYLIST_ID=  # 再生リストIDを設定（任意。未設定の場合
 
 ## アプリの起動
 ```sh
+venv\Scripts\activate
 python app/main.py
 ```
 

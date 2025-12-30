@@ -27,7 +27,7 @@ pip install -r requirements.txt
 ```sh
 copy config\.env.example .env
 ```
-.env ファイルを開いて，OBSのサーバーパスワードを設定してください．
+.env ファイルを開いて，OBSのサーバーパスワードを設定してください
 
 ## 二回目以降の開発
 開発開始時

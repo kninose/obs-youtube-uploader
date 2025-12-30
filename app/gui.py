@@ -1,5 +1,7 @@
 import os
+import json
 import customtkinter as ctk
+from tkinter import filedialog
 from obs_controller import OBSController
 from timestamp_recorder import TimestampRecorder
 from youtube_uploader import YouTubeUploader
@@ -11,7 +13,7 @@ class App(ctk.CTk):
         
         # ウィンドウ設定
         self.title("OBS YouTube Uploader")
-        self.geometry("550x375")
+        self.geometry("600x400")
         
         # カラーテーマ設定
         ctk.set_appearance_mode("dark")
@@ -19,7 +21,8 @@ class App(ctk.CTk):
         
         # パス設定
         self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.video_folder = os.path.join(self.project_root, "video")
+        self.config_file = os.path.join(self.project_root, "config", "settings.json")
+        self.video_folder = self._load_video_folder()
 
         # コントローラー初期化
         self.obs = OBSController()
@@ -38,6 +41,26 @@ class App(ctk.CTk):
             font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold")
         )
         self.label.pack(pady=20)
+
+        # 動画保存先選択セクション
+        folder_frame = ctk.CTkFrame(self)
+        folder_frame.pack(pady=10, padx=20, fill="x")
+        
+        self.folder_label = ctk.CTkLabel(
+            folder_frame,
+            text=f"保存先: {self.video_folder}",
+            font=ctk.CTkFont(family="Meiryo UI", size=12)
+        )
+        self.folder_label.pack(side="left", padx=5)
+        
+        self.folder_button = ctk.CTkButton(
+            folder_frame,
+            text="フォルダ選択",
+            font=ctk.CTkFont(family="Meiryo UI", size=12, weight="bold"),
+            command=self.select_folder,
+            width=100
+        )
+        self.folder_button.pack(side="right", padx=5)
         
         # OBS接続ボタン
         self.connect_button = ctk.CTkButton(
@@ -85,7 +108,46 @@ class App(ctk.CTk):
             font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold"),
         )
         self.status_label.pack(pady=20)
+
+    # 設定ファイルから保存先フォルダを読み込む
+    def _load_video_folder(self):
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding="utf-8") as f:
+                    config = json.load(f)
+                    return config.get("video_folder", os.path.join(self.project_root, "video"))
+        except Exception as e:
+            print(f"設定ファイル読み込みエラー: {e}")
+        
+        # デフォルト値を返す
+        return os.path.join(self.project_root, "video")
     
+    # 設定ファイルに保存先フォルダを保存する
+    def _save_video_folder(self):
+        try:
+            config = {}
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding="utf-8") as f:
+                    config = json.load(f)
+            
+            config["video_folder"] = self.video_folder
+            
+            with open(self.config_file, 'w', encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"設定ファイル保存エラー: {e}")
+    
+    # フォルダ選択ダイアログ
+    def select_folder(self):
+        folder = filedialog.askdirectory(
+            title="動画の保存先フォルダを選択",
+            initialdir=self.video_folder
+        )
+        
+        if folder:
+            self.video_folder = folder
+            self.folder_label.configure(text=f"保存先: {self.video_folder}")
+            self._save_video_folder()
 
     # OBSに接続
     def connect_obs(self):
