@@ -5,8 +5,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from dotenv import load_dotenv
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+load_dotenv()
+
+SCOPES = ["https://www.googleapis.com/auth/youtube"]
 
 class YouTubeUploader:
     # 初期化
@@ -15,6 +18,7 @@ class YouTubeUploader:
         self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.token_path = os.path.join(self.project_root, "token.pickle")
         self.client_secrets_path = os.path.join(self.project_root, "client_secrets.json")
+        self.playlist_id = os.getenv("YOUTUBE_PLAYLIST_ID", "")
         
         # client_secrets.jsonがある場合のみ認証
         if os.path.exists(self.client_secrets_path):
@@ -36,8 +40,31 @@ class YouTubeUploader:
             with open(self.token_path, "wb") as token:
                 pickle.dump(self.credentials, token)
     
+    # 動画を再生リストに追加
+    def add_to_playlist(self, video_id):
+        if not self.credentials:
+            raise Exception("YouTube認証が完了していません")
+        
+        youtube = build("youtube", "v3", credentials=self.credentials)
+        
+        request = youtube.playlistItems().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "playlistId": self.playlist_id,
+                    "resourceId": {
+                        "kind": "youtube#video",
+                        "videoId": video_id
+                    }
+                }
+            }
+        )
+        
+        response = request.execute()
+        return response
+    
     # アップロード処理
-    def upload(self, video_file, title, description):
+    def upload(self, video_file, title, description, add_to_playlist=True):
         if not self.credentials:
             raise Exception("YouTube認証が完了していません．client_secrets.jsonを配置してください．")
         
@@ -63,4 +90,13 @@ class YouTubeUploader:
         )
         
         response = request.execute()
-        return response     # YouTubeから返されるレスポンス（動画ID等が含まれる）       
+        video_id = response["id"]
+        
+        # 再生リストに追加（設定されている場合のみ）
+        if self.playlist_id:
+            try:
+                self.add_to_playlist(video_id)
+            except Exception as e:
+                print(f"再生リスト追加エラー: {e}")
+        
+        return response

@@ -62,7 +62,8 @@ class OBSController:
                 
                 # ファイルを移動
                 shutil.move(self.recording_file, destination_path)  # ファイル名を自動で変更させないため，第2引数にフルパスを指定する
-                self.recording_file = destination_path                
+                self.recording_file = destination_path        
+                break        
             
             except PermissionError as e:
                 if i < max_retries - 1:

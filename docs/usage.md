@@ -21,8 +21,9 @@ copy config\.env.example .env
 OBS_HOST=localhost
 OBS_PORT=4455
 OBS_PASSWORD=your_password
+YOUTUBE_PLAYLIST_ID=  # 再生リストIDを設定（任意。未設定の場合は再生リストに追加されません）
 ```
- ⚠️`OBS_PASSWORD` には，手順1で設定したパスワードを入力してください
+⚠️ `OBS_PASSWORD` には，手順1で設定したパスワードを入力してください
 
 ### 3. YouTube API認証情報の取得
 
@@ -40,7 +41,7 @@ OBS_PASSWORD=your_password
 4. 任意のメールアドレスを入力
 5. 「続行」->「作成」
 6. 「データアクセス」->「スコープを追加または削除」
-   - `https://www.googleapis.com/auth/youtube.upload` にチェック
+   - `https://www.googleapis.com/auth/youtube` にチェック
    - 「更新」→「保存して次へ」
 7. 「対象」->テストユーザー: 「+ Add Users」
    - **動画投稿したいYouTubeアカウントのGmailアドレス**を追加
@@ -49,18 +50,41 @@ OBS_PASSWORD=your_password
 #### OAuth クライアント ID の作成
 1. 「APIとサービス」→「クライアント」->「+ クライアントを作成」
 2. アプリケーションの種類: **「デスクトップ アプリ」**
-3. 任意の名前を入力->「作成」
-4. クライアントシークレット をダウンロード
-5. ダウンロードしたファイルを `client_secrets.json` にリネーム
-6. プロジェクトルート（`obs-uploader/`）に配置
+3. 名前: 任意（例: OBS Uploader Client）
+4. 「作成」
+5. クライアントシークレット をダウンロード
+6. ダウンロードしたファイルを `client_secrets.json` にリネーム
+7. プロジェクトルート（`obs-uploader/`）に配置
 
 #### YouTubeチャンネルの作成
-
 1. https://www.youtube.com/ にアクセス
 2. 認証に使うGoogleアカウントでログイン
 3. YouTubeチャンネルを作成（未作成の場合）
+
+#### 再生リストの設定（オプション）
+
+再生リストに自動追加したい場合:
+
+1. YouTubeで再生リストを作成（または既存のものを選択）
+2. 再生リストのURLを開く
+   - 例: `https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxx`
+3. `list=` の後の文字列（再生リストID）をコピー
+4. `.env` ファイルの `YOUTUBE_PLAYLIST_ID` に設定
+   ```sh
+   YOUTUBE_PLAYLIST_ID=PLxxxxxxxxxxxxxx
+   ```
+
+⚠️ **未設定の場合**: 動画はアップロードされますが、再生リストには追加されません
 
 ## アプリの起動
 ```sh
 python app/main.py
 ```
+
+## 初回実行時の認証
+
+1. アプリを起動すると、ブラウザが自動的に開きます
+2. Googleアカウントでログイン
+3. 「このアプリは確認されていません」と表示された場合:
+   - 「続行」→「続行」をクリック
+4. ウィンドウを閉じる

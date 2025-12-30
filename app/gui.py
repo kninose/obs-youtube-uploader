@@ -72,7 +72,7 @@ class App(ctk.CTk):
         self.upload_button = ctk.CTkButton(
             self,
             text="YouTubeに投稿",
-            font=ctk.CTkFont(family="Meiryo", size=16, weight="bold"),
+            font=ctk.CTkFont(family="Meiryo UI", size=16, weight="bold"),
             command=self.upload_to_youtube,
             state="disabled"
         )
@@ -82,7 +82,7 @@ class App(ctk.CTk):
         self.status_label = ctk.CTkLabel(
             self,
             text="準備完了",
-            font=ctk.CTkFont(family="Meiryo", size=20, weight="bold"),
+            font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold"),
         )
         self.status_label.pack(pady=20)
     
@@ -114,6 +114,8 @@ class App(ctk.CTk):
         try:
             self.obs.stop_recording()
             self.timestamp_recorder.stop_recording()
+            self.status_label.configure(text="録画停止中...")
+            self.update()
 
             try:
                 self.obs.move_recording_to_folder(self.video_folder)
@@ -137,7 +139,7 @@ class App(ctk.CTk):
 
             # タイムスタンプレコーダーから直接チャプターを取得
             chapters = self.timestamp_recorder.generate_youtube_chapters()
-            description = f"チャプター:\n{chapters}" if chapters else "概要欄テキスト"
+            description = f"チャプター:\n{chapters}" if chapters else "チャプターが生成されませんでした"
 
             if not os.path.exists(self.video_folder):
                 raise FileNotFoundError(f"videoフォルダが見つかりません: {self.video_folder}")
@@ -151,7 +153,7 @@ class App(ctk.CTk):
             latest_video = max(video_files_path, key=os.path.getmtime)
 
             self.youtube.upload(latest_video, "動画タイトル", description)
-            self.status_label.configure(text="アップロード完了！")
+            self.status_label.configure(text="アップロード完了")
             self.upload_button.configure(state="disabled")
             self.record_button.configure(state="normal")
         except Exception as e:
