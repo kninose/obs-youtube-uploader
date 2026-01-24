@@ -15,7 +15,7 @@ python -m venv venv
 
 3. 仮想環境の有効化
 ```sh
-venv/Scripts/activate
+venv\Scripts\activate
 ```
 
 4. 依存関係のインストール
@@ -31,7 +31,7 @@ copy .env.example .env
 ## 次回以降の開発
 開発開始時
 ```sh
-venv/Scripts/activate
+venv\Scripts\activate
 ```
 
 開発終了時
@@ -58,6 +58,6 @@ pip freeze > requirements.txt
 deactivate
 rmdir /s venv
 python -m venv venv
-venv/Scripts/activate
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
