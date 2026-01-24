@@ -5,12 +5,12 @@
 1. リポジトリをクローン
 ```sh
 git clone <repository-url>
-cd obs-uploader
+cd obs-youtube-uploader
 ```
 
 2. 開発環境の作成
 ```sh
-py -3.12 -m venv venv
+python -m venv venv
 ```
 
 3. 仮想環境の有効化
