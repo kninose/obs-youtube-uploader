@@ -26,17 +26,26 @@ class YouTubeUploader:
     
     # 認証処理
     def _authenticate(self):
+        # 1. 保存済みの認証情報を読み込み
         if os.path.exists(self.token_path):
             with open(self.token_path, "rb") as token:
                 self.credentials = pickle.load(token)
         
+        # 2. 認証情報が存在しない、または無効な場合
         if not self.credentials or not self.credentials.valid:
+            # 更新可能な場合はリフレッシュ
             if self.credentials and self.credentials.expired and self.credentials.refresh_token:
-                self.credentials.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self.client_secrets_path, SCOPES)
+                try:
+                    self.credentials.refresh(Request())
+                except Exception as e:
+                    self.credentials = None
+
+            # トークンがない，またはリフレッシュに失敗した場合は新規認証
+            if not self.credentials or not self.credentials.valid:
+                flow = InstalledAppFlow.from_client_secrets_file(self.client_secrets_path, SCOPES)
                 self.credentials = flow.run_local_server(port=0)
+            
+            # 3. 認証情報を保存
             with open(self.token_path, "wb") as token:
                 pickle.dump(self.credentials, token)
     

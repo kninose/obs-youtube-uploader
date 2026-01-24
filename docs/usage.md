@@ -17,15 +17,16 @@ copy config\.env.example .env
 ```
 
 `.env` ファイルを開いて編集
+
 ```sh
 OBS_HOST=localhost
 OBS_PORT=4455
-OBS_PASSWORD=your_password
+OBS_PASSWORD=
 
 CLIENT_SECRETS_PATH=client_secrets.json
 YOUTUBE_PLAYLIST_ID=  # 任意．未設定の場合は再生リストに追加されません
 ```
-⚠️ `OBS_PASSWORD` には，手順1で設定したパスワードを入力してください
+`OBS_PASSWORD` に，手順1で設定したパスワードを入力してください
 
 ### 3. YouTube API認証情報の取得
 

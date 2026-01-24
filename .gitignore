@@ -1,18 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
 # Python
 venv/
 __pycache__/
-*.pyc
 
 # 認証情報
 .env
 client_secrets.json
 token.pickle
 
-# 動画ファイル
-*.mp4
+# テンプレート画像
+*.png
 
 # その他
-.DS_Store
-Thumbs.db
-settings.json
 *.log
+utility

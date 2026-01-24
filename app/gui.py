@@ -1,7 +1,6 @@
 import os
 import json
 import customtkinter as ctk
-from tkinter import filedialog
 from obs_controller import OBSController
 from timestamp_recorder import TimestampRecorder
 from youtube_uploader import YouTubeUploader
@@ -13,7 +12,7 @@ class App(ctk.CTk):
         
         # ウィンドウ設定
         self.title("OBS YouTube Uploader")
-        self.geometry("600x400")
+        self.geometry("550x370")
         
         # カラーテーマ設定
         ctk.set_appearance_mode("dark")
@@ -21,13 +20,11 @@ class App(ctk.CTk):
         
         # パス設定
         self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.config_file = os.path.join(self.project_root, "config", "settings.json")
-        self.video_folder = self._load_video_folder()
 
         # コントローラー初期化
         self.obs = OBSController()
         self.youtube = YouTubeUploader()
-        self.timestamp_recorder = TimestampRecorder()
+        self.timestamp_recorder = TimestampRecorder(obs_controller=self.obs)
         
         # UI構築
         self._create_widgets()
@@ -41,26 +38,6 @@ class App(ctk.CTk):
             font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold")
         )
         self.label.pack(pady=20)
-
-        # 動画保存先選択セクション
-        folder_frame = ctk.CTkFrame(self)
-        folder_frame.pack(pady=10, padx=20, fill="x")
-        
-        self.folder_label = ctk.CTkLabel(
-            folder_frame,
-            text=f"保存先: {self.video_folder}",
-            font=ctk.CTkFont(family="Meiryo UI", size=12)
-        )
-        self.folder_label.pack(side="left", padx=5)
-        
-        self.folder_button = ctk.CTkButton(
-            folder_frame,
-            text="フォルダ選択",
-            font=ctk.CTkFont(family="Meiryo UI", size=12, weight="bold"),
-            command=self.select_folder,
-            width=100
-        )
-        self.folder_button.pack(side="right", padx=5)
         
         # OBS接続ボタン
         self.connect_button = ctk.CTkButton(
@@ -109,52 +86,13 @@ class App(ctk.CTk):
         )
         self.status_label.pack(pady=20)
 
-    # 設定ファイルから保存先フォルダを読み込む
-    def _load_video_folder(self):
-        try:
-            if os.path.exists(self.config_file):
-                with open(self.config_file, 'r', encoding="utf-8") as f:
-                    config = json.load(f)
-                    return config.get("video_folder", os.path.join(self.project_root, "video"))
-        except Exception as e:
-            print(f"設定ファイル読み込みエラー: {e}")
-        
-        # デフォルト値を返す
-        return os.path.join(self.project_root, "video")
-    
-    # 設定ファイルに保存先フォルダを保存する
-    def _save_video_folder(self):
-        try:
-            config = {}
-            if os.path.exists(self.config_file):
-                with open(self.config_file, 'r', encoding="utf-8") as f:
-                    config = json.load(f)
-            
-            config["video_folder"] = self.video_folder
-            
-            with open(self.config_file, 'w', encoding="utf-8") as f:
-                json.dump(config, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            print(f"設定ファイル保存エラー: {e}")
-    
-    # フォルダ選択ダイアログ
-    def select_folder(self):
-        folder = filedialog.askdirectory(
-            title="動画の保存先フォルダを選択",
-            initialdir=self.video_folder
-        )
-        
-        if folder:
-            self.video_folder = folder
-            self.folder_label.configure(text=f"保存先: {self.video_folder}")
-            self._save_video_folder()
-
     # OBSに接続
     def connect_obs(self):
         try:
             self.obs.connect()
             self.status_label.configure(text="OBSに接続しました")
             self.record_button.configure(state="normal")
+            self.upload_button.configure(state="disabled")
         except Exception as e:
             print(f"接続エラー: {e}")
             self.status_label.configure(text="OBSとの接続に失敗しました\n（OBSは起動していますか？）")
@@ -176,19 +114,9 @@ class App(ctk.CTk):
         try:
             self.obs.stop_recording()
             self.timestamp_recorder.stop_recording()
-            self.status_label.configure(text="録画停止中...")
-            self.update()
-
-            try:
-                self.obs.move_recording_to_folder(self.video_folder)
-                self.status_label.configure(text="録画を停止しました")
-                self.stop_button.configure(state="disabled")
-                self.upload_button.configure(state="normal")
-            except Exception as e:
-                print(f"ファイル移動エラー: {e}")
-                self.status_label.configure(text="録画ファイルの移動に失敗しました")
-                self.stop_button.configure(state="disabled")
-
+            self.status_label.configure(text="録画を停止しました")
+            self.stop_button.configure(state="disabled")
+            self.upload_button.configure(state="normal")
         except Exception as e:
             print(f"録画停止エラー: {e}")
             self.status_label.configure(text="録画停止に失敗しました")
@@ -203,18 +131,13 @@ class App(ctk.CTk):
             chapters = self.timestamp_recorder.generate_youtube_chapters()
             description = f"チャプター:\n{chapters}" if chapters else "チャプターが生成されませんでした"
 
-            if not os.path.exists(self.video_folder):
-                raise FileNotFoundError(f"videoフォルダが見つかりません: {self.video_folder}")
-
-            video_files = [f for f in os.listdir(self.video_folder) if f.endswith(".mp4")]
+            # OBSから録画ファイルパスを取得
+            video_path = self.obs.recording_file
             
-            if not video_files:
-                raise FileNotFoundError(f"videoフォルダに動画ファイルが見つかりません: {self.video_folder}")
-            
-            video_files_path = [os.path.join(self.video_folder, f) for f in video_files]
-            latest_video = max(video_files_path, key=os.path.getmtime)
+            if not video_path or not os.path.exists(video_path):
+                raise FileNotFoundError("録画ファイルが見つかりません")
 
-            self.youtube.upload(latest_video, "動画タイトル", description)
+            self.youtube.upload(video_path, "動画タイトル", description)
             self.status_label.configure(text="アップロード完了")
             self.upload_button.configure(state="disabled")
             self.record_button.configure(state="normal")
