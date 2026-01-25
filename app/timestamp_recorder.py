@@ -154,6 +154,6 @@ class TimestampRecorder:
         
         # 最初に0:00を追加（YouTubeの要件）
         if not chapters or not chapters[0].startswith("0:00"):
-            chapters.insert(0, "0:00 recording")
+            chapters.insert(0, "0:00 START")
         
         return "\n".join(chapters)
