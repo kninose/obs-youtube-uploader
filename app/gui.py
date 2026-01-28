@@ -27,10 +27,6 @@ class App(ctk.CTk):
         self.obs = OBSController()
         self.youtube = YouTubeUploader()
         self.timestamp_recorder = TimestampRecorder(obs_controller=self.obs)
-
-        # 動画タイトル
-        self.video_title = None
-        self.recording_date = None
         
         # UI構築
         self._create_widgets()
@@ -108,7 +104,6 @@ class App(ctk.CTk):
         try:
             self.obs.start_recording()
             self.timestamp_recorder.start_recording()
-            self.recording_date = datetime.now()
             self.status_label.configure(text="録画中... (F1-F3でタイムスタンプ追加)")
             self.record_button.configure(state="disabled")
             self.stop_button.configure(state="normal")
@@ -152,8 +147,8 @@ class App(ctk.CTk):
             chapters = self.timestamp_recorder.generate_youtube_chapters()
             description = f"タイムスタンプ:\n{chapters}"
 
-            # 動画タイトルを設定（初期値は録画開始時の日時）
-            title = self.video_title or self.recording_date.strftime("%Y-%m-%d")
+            # 動画タイトルを録画ファイル名に設定
+            title = os.path.splitext(os.path.basename(video_path))[0]
 
             # Youtubeに投稿
             self.youtube.upload(video_path, title, description)
