@@ -90,7 +90,7 @@ class YouTubeUploader:
             }
         }
         
-        media = MediaFileUpload(video_file, chunksize=-1, resumable=True)
+        media = MediaFileUpload(video_file, chunksize=16*1024*1024, resumable=True)
         
         request = youtube.videos().insert(
             part=','.join(body.keys()),
