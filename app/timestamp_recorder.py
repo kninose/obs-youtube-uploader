@@ -106,8 +106,8 @@ class TimestampRecorder:
             except Exception as e:
                 print(f"画面取得エラー: {e}")
             
-            # 0.5秒毎に検出
-            time.sleep(0.5)
+            # 0.25秒毎に検出
+            time.sleep(0.25)
     
     # キー入力時の処理
     def _on_key_press(self, key):
