@@ -1,8 +1,6 @@
 import os
-import json
 import threading
 import customtkinter as ctk
-from datetime import datetime
 from obs_controller import OBSController
 from timestamp_recorder import TimestampRecorder
 from youtube_uploader import YouTubeUploader
