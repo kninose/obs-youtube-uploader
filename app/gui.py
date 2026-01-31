@@ -12,7 +12,8 @@ class App(ctk.CTk):
         
         # ウィンドウ設定
         self.title("OBS YouTube Uploader")
-        self.geometry("550x370")
+        self.geometry("450x300")
+        self.resizable(False, False)
         
         # カラーテーマ設定
         ctk.set_appearance_mode("dark")
@@ -31,52 +32,77 @@ class App(ctk.CTk):
     
     # UI作成
     def _create_widgets(self):
-        # タイトル
-        self.label = ctk.CTkLabel(
-            self,
-            text="OBS YouTube Uploader",
-            font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold")
-        )
-        self.label.pack(pady=20)
-        
         # OBS接続ボタン
         self.connect_button = ctk.CTkButton(
             self,
+            width=410,
+            height=40,
             text="OBSに接続",
             font=ctk.CTkFont(family="Meiryo UI", size=16, weight="bold"),
             command=self.connect_obs
         )
-        self.connect_button.pack(pady=10)
+        self.connect_button.pack(pady=(20, 10))
         
+        # 録画用フレーム
+        record_frame = ctk.CTkFrame(self, fg_color="transparent")
+        record_frame.pack(pady=10)
+
         # 録画開始ボタン
         self.record_button = ctk.CTkButton(
-            self,
+            record_frame,
+            width=200,
+            height=40,
             text="録画開始",
             font=ctk.CTkFont(family="Meiryo UI", size=16, weight="bold"),
             command=self.start_recording,
             state="disabled"
         )
-        self.record_button.pack(pady=10)
+        self.record_button.pack(side="left", padx=5)
         
         # 録画停止ボタン
         self.stop_button = ctk.CTkButton(
-            self,
+            record_frame,
+            width=200,
+            height=40,
             text="録画停止",
             font=ctk.CTkFont(family="Meiryo UI", size=16, weight="bold"),
             command=self.stop_recording,
             state="disabled"
         )
-        self.stop_button.pack(pady=10)
+        self.stop_button.pack(side="left", padx=5)
 
         # アップロードボタン
         self.upload_button = ctk.CTkButton(
             self,
+            width=410,
+            height=40,
             text="YouTubeに投稿",
             font=ctk.CTkFont(family="Meiryo UI", size=16, weight="bold"),
             command=self.upload_to_youtube,
             state="disabled"
         )
         self.upload_button.pack(pady=10)
+
+        # テンプレートマッチング設定用フレーム
+        template_frame = ctk.CTkFrame(self, fg_color="transparent")
+        template_frame.pack(pady=10)
+
+        # テンプレートマッチングラベル
+        template_label = ctk.CTkLabel(
+            template_frame,
+            text="テンプレートマッチング:",
+            font=ctk.CTkFont(family="Meiryo UI", size=14)
+        )
+        template_label.pack(side="left", padx=(60, 10))
+
+        # テンプレートマッチングスイッチ
+        self.template_switch = ctk.CTkSwitch(
+            template_frame,
+            text="",
+            font=ctk.CTkFont(family="Meiryo UI", size=14),
+            command=self.toggle_template_matching
+        )
+        self.template_switch.pack(side="left")
         
         # ステータス表示
         self.status_label = ctk.CTkLabel(
@@ -84,7 +110,7 @@ class App(ctk.CTk):
             text="準備完了",
             font=ctk.CTkFont(family="Meiryo UI", size=20, weight="bold"),
         )
-        self.status_label.pack(pady=20)
+        self.status_label.pack(pady=10)
 
     # OBSに接続
     def connect_obs(self):
@@ -95,14 +121,14 @@ class App(ctk.CTk):
             self.upload_button.configure(state="disabled")
         except Exception as e:
             print(f"接続エラー: {e}")
-            self.status_label.configure(text="OBSとの接続に失敗しました\n（OBSは起動していますか？）")
+            self.status_label.configure(text="OBSとの接続に失敗しました")
     
     # 録画開始
     def start_recording(self):
         try:
             self.obs.start_recording()
             self.timestamp_recorder.start_recording()
-            self.status_label.configure(text="録画中... (F1-F3でタイムスタンプ追加)")
+            self.status_label.configure(text="録画中...")
             self.record_button.configure(state="disabled")
             self.stop_button.configure(state="normal")
         except Exception as e:
@@ -120,6 +146,15 @@ class App(ctk.CTk):
         except Exception as e:
             print(f"録画停止エラー: {e}")
             self.status_label.configure(text="録画停止に失敗しました")
+
+    # テンプレートマッチングの切り替え
+    def toggle_template_matching(self):
+        if self.template_switch.get():
+            self.timestamp_recorder.enable_template_matching = True
+            print("テンプレートマッチング: オン")
+        else:
+            self.timestamp_recorder.enable_template_matching = False
+            print("テンプレートマッチング: オフ")
     
     # YouTubeにアップロード
     def upload_to_youtube(self):

@@ -16,6 +16,7 @@ class TimestampRecorder:
         self.masks = []
         self.game_count = 0
         self.last_detection_time = None
+        self.enable_template_matching = False
         self.obs_controller = obs_controller
 
         # スレッド管理
@@ -87,28 +88,6 @@ class TimestampRecorder:
         self.detection_thread.join(timeout=2)
         self.detection_thread = None
     
-    # OBSから画面を取得
-    def _detection_loop(self):
-        while not self.stop_detection:
-            try:
-                screenshot = self.obs_controller.get_screenshot()
-
-                # テンプレート画像を検出
-                if self.detect_template(screenshot):
-                    current_time = time.time()
-                    
-                    # 前回検出から5秒以上経過している場合のみ記録
-                    if self.last_detection_time is None or (current_time - self.last_detection_time) >= 5:
-                        elapsed_time = time.time() - self.recording_start_time
-                        self.game_count += 1
-                        self.add_timestamp(elapsed_time, f"GAME{self.game_count}")
-
-            except Exception as e:
-                print(f"画面取得エラー: {e}")
-            
-            # 0.25秒毎に検出
-            time.sleep(0.25)
-    
     # キー入力時の処理
     def _on_key_press(self, key):
         if not self.is_recording:
@@ -118,6 +97,29 @@ class TimestampRecorder:
             elapsed_time = time.time() - self.recording_start_time
             event_type = self.key_bindings[key]
             self.add_timestamp(elapsed_time, event_type)
+
+    # OBSから画面を取得
+    def _detection_loop(self):
+        while not self.stop_detection:
+            try:
+                if self.enable_template_matching:
+                    screenshot = self.obs_controller.get_screenshot()
+
+                    # テンプレート画像を検出
+                    if self.detect_template(screenshot):
+                        current_time = time.time()
+                        
+                        # 前回検出から5秒以上経過している場合のみ記録
+                        if self.last_detection_time is None or (current_time - self.last_detection_time) >= 5:
+                            elapsed_time = time.time() - self.recording_start_time
+                            self.game_count += 1
+                            self.add_timestamp(elapsed_time, f"GAME{self.game_count}")
+
+            except Exception as e:
+                print(f"画面取得エラー: {e}")
+            
+            # 0.1秒毎に検出
+            time.sleep(0.1)
     
     # タイムスタンプを追加
     def add_timestamp(self, elapsed_time, event_label):
