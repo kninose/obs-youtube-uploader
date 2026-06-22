@@ -130,7 +130,7 @@ class TimestampRecorder:
         self.timestamps.append(timestamp)
         print(f"タイムスタンプ記録: {self._format_time(elapsed_time)} - {event_label}")
     
-    # 秒数を 0:00 形式に変換
+    # 秒数を hh:mm:ss 形式に変換
     def _format_time(self, seconds):
         td = timedelta(seconds=int(seconds))
         hours = td.seconds // 3600
